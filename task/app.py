@@ -14,12 +14,12 @@ async def start(stream: bool) -> None:
     system_prompt = input(f"Provide System prompt or press 'enter' to continue.\n")
     if system_prompt.strip() == "":
         system_prompt = DEFAULT_SYSTEM_PROMPT
-
+    conversation.add_message(Message(role=Role.SYSTEM, content=system_prompt))
+    print("Type your question or 'exit' to quit.")
     while True:
-        input_message = input("Type your question or 'exit' to quit.\n")
+        input_message = input("> ")
         if input_message == "exit":
             break
-        conversation.add_message(Message(role=Role.SYSTEM, content=system_prompt))
         conversation.add_message(Message(role=Role.USER, content=input_message))
         if stream:
             await custom_dial_client.stream_completion(conversation.get_messages())
@@ -27,7 +27,6 @@ async def start(stream: bool) -> None:
             response = custom_dial_client.get_completion(conversation.get_messages())
             print(response.content)
         print()
-
 
     #TODO:
     # 1.1. Create DialClient

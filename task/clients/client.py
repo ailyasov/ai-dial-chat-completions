@@ -25,16 +25,14 @@ class DialClient(BaseClient):
         #    Hint: to unpack messages you can use the `to_dict()` method from Message object
         # 2. Get content from response, print it and return message with assistant role and content
         # 3. If choices are not present then raise Exception("No choices in response found")
-        completion = self.dial_client.chat.completions.create(
+        content = self.dial_client.chat.completions.create(
             deployment_name=self._deployment_name,
             stream=False,
             messages=cast(List[DialMessage], [msg.to_dict() for msg in messages]),
             api_version="2024-02-15-preview",
         )
-        print(completion)
-        print("hello")
-        return LocalMessage(role=Role.AI, content=completion.choices[0].message.content or "")
-        #LocalMessage(role=Role.AI, content=completion.choices[0].message.content)
+        print(content)
+        return LocalMessage(role=Role.AI, content=content.choices[0].message.content or "")
 
     async def stream_completion(self, messages: list[LocalMessage]) -> LocalMessage:
         # TODO:
