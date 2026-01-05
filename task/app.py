@@ -22,9 +22,9 @@ async def start(stream: bool) -> None:
             break
         conversation.add_message(Message(role=Role.USER, content=input_message))
         if stream:
-            await custom_dial_client.stream_completion(conversation.get_messages())
+            await dial_client.stream_completion(conversation.get_messages())
         else:
-            response = custom_dial_client.get_completion(conversation.get_messages())
+            response = dial_client.get_completion(conversation.get_messages())
             print(response.content)
         print()
 
@@ -48,5 +48,5 @@ async def start(stream: bool) -> None:
 
 
 asyncio.run(
-    start(True)
+    start(False)
 )
