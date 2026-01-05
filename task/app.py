@@ -11,18 +11,22 @@ async def start(stream: bool) -> None:
     dial_client = DialClient(deployment_name="gpt-4")
     custom_dial_client = DialClient(deployment_name="gpt-4")
     conversation = Conversation()
+    system_prompt = input(f"Provide System prompt or press 'enter' to continue.\n")
+    if system_prompt.strip() == "":
+        system_prompt = DEFAULT_SYSTEM_PROMPT
 
     while True:
-        input_message = input("Enter your message: ")
+        input_message = input("Type your question or 'exit' to quit.\n")
         if input_message == "exit":
             break
+        conversation.add_message(Message(role=Role.SYSTEM, content=system_prompt))
         conversation.add_message(Message(role=Role.USER, content=input_message))
         if stream:
-            response = await custom_dial_client.stream_completion(conversation.get_messages())
-            print(response.content)
+            await custom_dial_client.stream_completion(conversation.get_messages())
         else:
             response = custom_dial_client.get_completion(conversation.get_messages())
             print(response.content)
+        print()
 
 
     #TODO:

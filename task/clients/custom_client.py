@@ -74,6 +74,18 @@ class DialClient:
             "messages": [msg.to_dict() for msg in messages]
         }
         contents = []
+
+        def _get_content_snippet(line):
+            content_chunk = None
+            decoded_line = line.decode('utf-8').strip()
+            if decoded_line.startswith("data: "):
+                data = decoded_line[6:]
+                if data == "[DONE]":
+                    return None
+                chunk = json.loads(data)
+                content_chunk = chunk["choices"][0]["delta"].get("content", "")
+            return content_chunk
+
         async with aiohttp.ClientSession() as session:
             async with session.post(
                 url=self._endpoint,
@@ -81,16 +93,11 @@ class DialClient:
                 headers=headers
             ) as response:
                 async for line in response.content:
-                    decoded_line = line.decode('utf-8').strip()
-                    if decoded_line.startswith("data: "):
-                        data = decoded_line[6:]
-                        if data == "[DONE]":
-                            break
-                        chunk = json.loads(data)
-                        content_chunk = chunk["choices"][0]["delta"].get("content", "")
-                        print(content_chunk, end='', flush=True)
+                    content_chunk = _get_content_snippet(line)
+                    if content_chunk is not None:
                         contents.append(content_chunk)
+                        print(content_chunk, end='', flush=True)
 
-        print()  # For newline after streaming is done
+        print()
         return Message(role=Role.AI, content=''.join(contents))
 

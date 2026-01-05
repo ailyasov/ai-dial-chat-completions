@@ -53,6 +53,9 @@ class DialClient(BaseClient):
         )
         contents = []
         async for chunk in completion:
-            contents.append(chunk.choices[0].delta.content or "")
+            content_chunk = chunk.choices[0].delta.content
+            contents.append(content_chunk)
+            print(content_chunk, end='', flush=True)
 
+        print()
         return LocalMessage(role=Role.AI, content=''.join(contents))
