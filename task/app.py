@@ -8,8 +8,8 @@ from task.models.role import Role
 
 
 async def start(stream: bool) -> None:
-    dial_client = DialClient(deployment_name="gpt-4")
-    custom_dial_client = DialClient(deployment_name="gpt-4")
+    dial_client = DialClient(deployment_name="gpt-4o")
+    custom_dial_client = DialClient(deployment_name="gpt-4o")
     conversation = Conversation()
     system_prompt = input(f"Provide System prompt or press 'enter' to continue.\n")
     if system_prompt.strip() == "":
@@ -22,10 +22,11 @@ async def start(stream: bool) -> None:
             break
         conversation.add_message(Message(role=Role.USER, content=input_message))
         if stream:
-            await dial_client.stream_completion(conversation.get_messages())
+            response = await dial_client.stream_completion(conversation.get_messages())
+            conversation.add_message(response)
         else:
             response = dial_client.get_completion(conversation.get_messages())
-            print(response.content)
+            conversation.add_message(response)
         print()
 
     #TODO:
@@ -48,5 +49,5 @@ async def start(stream: bool) -> None:
 
 
 asyncio.run(
-    start(False)
+    start(True)
 )

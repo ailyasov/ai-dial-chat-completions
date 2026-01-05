@@ -25,14 +25,18 @@ class DialClient(BaseClient):
         #    Hint: to unpack messages you can use the `to_dict()` method from Message object
         # 2. Get content from response, print it and return message with assistant role and content
         # 3. If choices are not present then raise Exception("No choices in response found")
-        content = self.dial_client.chat.completions.create(
+        response = self.dial_client.chat.completions.create(
             deployment_name=self._deployment_name,
             stream=False,
-            messages=cast(List[DialMessage], [msg.to_dict() for msg in messages]),
-            api_version="2024-02-15-preview",
+            messages=cast(List[DialMessage], [msg.to_dict() for msg in messages])
         )
-        print(content)
-        return LocalMessage(role=Role.AI, content=content.choices[0].message.content or "")
+        print(response)
+        if not response.choices:
+            raise Exception("No choices in response found")
+        message = response.choices[0].message
+        if message is None:
+            raise Exception("No message in response found")
+        return LocalMessage(role=Role.AI, content=message.content or "")
 
     async def stream_completion(self, messages: list[LocalMessage]) -> LocalMessage:
         # TODO:
@@ -46,14 +50,15 @@ class DialClient(BaseClient):
         completion = await self.async_dial_client.chat.completions.create(
             deployment_name=self._deployment_name,
             stream=True,
-            messages=cast(List[DialMessage], [msg.to_dict() for msg in messages]),
-            api_version="2024-02-15-preview",
+            messages=cast(List[DialMessage], [msg.to_dict() for msg in messages])
         )
         contents = []
         async for chunk in completion:
-            content_chunk = chunk.choices[0].delta.content
-            contents.append(content_chunk)
-            print(content_chunk, end='', flush=True)
+            if chunk.choices and len(chunk.choices) > 0:
+                delta = chunk.choices[0].delta
+                if delta and delta.content:
+                    print(delta.content, end='', flush=True)
+                    contents.append(delta.content)
 
         print()
         return LocalMessage(role=Role.AI, content=''.join(contents))
