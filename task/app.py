@@ -1,6 +1,6 @@
 import asyncio
 
-from task.clients.client import DialClient
+from task.clients.custom_client import DialClient
 from task.constants import DEFAULT_SYSTEM_PROMPT
 from task.models.conversation import Conversation
 from task.models.message import Message
@@ -8,6 +8,23 @@ from task.models.role import Role
 
 
 async def start(stream: bool) -> None:
+    dial_client = DialClient(deployment_name="gpt-4")
+    custom_dial_client = DialClient(deployment_name="gpt-4")
+    conversation = Conversation()
+
+    while True:
+        input_message = input("Enter your message: ")
+        if input_message == "exit":
+            break
+        conversation.add_message(Message(role=Role.USER, content=input_message))
+        if stream:
+            response = await custom_dial_client.stream_completion(conversation.get_messages())
+            print(response.content)
+        else:
+            response = custom_dial_client.get_completion(conversation.get_messages())
+            print(response.content)
+
+
     #TODO:
     # 1.1. Create DialClient
     # (you can get available deployment_name via https://ai-proxy.lab.epam.com/openai/models
@@ -25,7 +42,6 @@ async def start(stream: bool) -> None:
     # 8. Add generated message to history
     # 9. Test it with DialClient and CustomDialClient
     # 10. In CustomDialClient add print of whole request and response to see what you send and what you get in response
-    raise NotImplementedError
 
 
 asyncio.run(
